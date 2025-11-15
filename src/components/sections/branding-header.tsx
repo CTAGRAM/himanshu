@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -66,7 +66,18 @@ const shows: Show[] = [
 
 const BrandingHeader = () => {
   const [hovered, setHovered] = useState<number | null>(null);
-  const [playingVideo, setPlayingVideo] = useState<number | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<Set<number>>(new Set());
+
+  // Auto-play all videos when component mounts
+  useEffect(() => {
+    const videoIndices = new Set<number>();
+    shows.forEach((show, index) => {
+      if (show.videoId) {
+        videoIndices.add(index);
+      }
+    });
+    setPlayingVideo(videoIndices);
+  }, []);
 
   return (
     <section className="bg-background py-12 sm:py-16 md:py-20 lg:py-32">
@@ -86,13 +97,9 @@ const BrandingHeader = () => {
               key={index}
               onMouseEnter={() => {
                 setHovered(index);
-                if (show.videoId) {
-                  setPlayingVideo(index);
-                }
               }}
               onMouseLeave={() => {
                 setHovered(null);
-                setPlayingVideo(null);
               }}
               className={cn(
                 "flex flex-col bg-card rounded-[15px] md:rounded-[19px] overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group border border-border",
@@ -101,7 +108,7 @@ const BrandingHeader = () => {
             >
               {/* Video/Image Container */}
               <div className="w-full aspect-square md:aspect-[4/3] relative overflow-hidden bg-card">
-                {show.videoId && playingVideo === index ? (
+                {show.videoId && playingVideo.has(index) ? (
                   <iframe
                     className="absolute inset-0 w-full h-full"
                     src={`https://www.youtube.com/embed/${show.videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${show.videoId}&modestbranding=1&rel=0&playsinline=1`}
